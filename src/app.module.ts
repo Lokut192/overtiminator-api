@@ -8,6 +8,7 @@ import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { UtilsService } from './utils/utils.service';
 import { MeUserModule } from './me-user/me-user.module';
+import { GlobalUserSettingsModule } from './global-user-settings/global-user-settings.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { MeUserModule } from './me-user/me-user.module';
     UserModule,
     AuthModule,
     MeUserModule,
+    GlobalUserSettingsModule,
   ],
   controllers: [AppController],
   providers: [AppService, UtilsService],
