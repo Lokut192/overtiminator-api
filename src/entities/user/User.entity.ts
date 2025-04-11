@@ -6,8 +6,11 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+
+import { UserSetting } from './UserSetting.entity';
 
 @Entity({ name: 'users' })
 export class User {
@@ -67,4 +70,7 @@ export class User {
     nullable: true,
   })
   deletedAt: Date;
+
+  @OneToMany(() => UserSetting, (userSetting) => userSetting.user)
+  userSettings: UserSetting[];
 }

@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { plainToInstance } from 'class-transformer';
+import { TimeZone } from 'src/decorators/TimeZone';
 import { CreateUserDto } from 'src/dto/User/Create.dto';
 import { GetOneUserDto } from 'src/dto/User/GetOne.dto';
 import { SignInUserDto } from 'src/dto/User/SignIn.dto';
@@ -36,8 +37,10 @@ export class AuthController {
     schema: { type: 'object' },
     type: GetOneUserDto,
   })
-  async signUp(@Body() user: CreateUserDto) {
-    const createdUser = await this.authService.registerUser(user);
+  async signUp(@Body() user: CreateUserDto, @TimeZone() timeZone?: string) {
+    const createdUser = await this.authService.registerUser(user, {
+      ...(typeof timeZone === 'string' ? { timeZone } : {}),
+    });
 
     return plainToInstance(GetOneUserDto, createdUser);
   }
