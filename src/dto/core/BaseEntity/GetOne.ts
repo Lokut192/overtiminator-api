@@ -1,13 +1,18 @@
+import { ApiProperty } from '@nestjs/swagger';
 import { Expose, Transform } from 'class-transformer';
+import { DateTime } from 'luxon';
 
 export class GetOneBaseEntityDto {
   @Expose()
+  @ApiProperty({ example: 1 })
   id: number;
 
   @Expose()
+  @ApiProperty({ example: DateTime.now().toUTC().toISO() })
   createdAt: Date;
 
   @Expose()
+  @ApiProperty({ example: 1 })
   @Transform(({ obj }) => {
     return !!obj.createdBy
       ? {
@@ -24,9 +29,11 @@ export class GetOneBaseEntityDto {
   } | null;
 
   @Expose()
+  @ApiProperty({ example: DateTime.now().toUTC().toISO() })
   updatedAt: Date | null;
 
   @Expose()
+  @ApiProperty({ example: 1 })
   @Transform(({ obj }) => {
     return !!obj.updatedBy
       ? {
@@ -43,8 +50,10 @@ export class GetOneBaseEntityDto {
   } | null;
 
   @Expose()
+  @ApiProperty({ example: true })
   deleted: boolean;
 
   @Expose()
+  @ApiProperty({ example: DateTime.now().toUTC().toISO() })
   deletedAt: Date | null;
 }
