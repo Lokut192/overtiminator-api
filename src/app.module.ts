@@ -5,9 +5,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
+import { GlobalUserSettingsModule } from './global-user-settings/global-user-settings.module';
+import { MeUserModule } from './me-user/me-user.module';
 import { UserModule } from './user/user.module';
 import { UtilsService } from './utils/utils.service';
-import { MeUserModule } from './me-user/me-user.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { MeUserModule } from './me-user/me-user.module';
     UserModule,
     AuthModule,
     MeUserModule,
+    GlobalUserSettingsModule,
   ],
   controllers: [AppController],
   providers: [AppService, UtilsService],

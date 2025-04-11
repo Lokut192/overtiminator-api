@@ -1,10 +1,16 @@
 import * as bcrypt from 'bcryptjs';
-import { BeforeInsert, BeforeUpdate, Column, Entity } from 'typeorm';
-
-import { BaseEntity } from '../core/base.entity';
+import {
+  BeforeInsert,
+  BeforeUpdate,
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity({ name: 'users' })
-export class User extends BaseEntity {
+export class User {
   @Column()
   email: string;
 
@@ -21,4 +27,44 @@ export class User extends BaseEntity {
       this.password = await bcrypt.hash(this.password, 10);
     }
   }
+
+  // Base entity to avoid circular dependencies
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column({
+    precision: 3,
+    type: 'datetime',
+    default: () => 'CURRENT_TIMESTAMP',
+    name: 'created_at',
+  })
+  createdAt: Date;
+
+  @ManyToOne(() => User, (user) => user.id, { nullable: true })
+  @JoinColumn({ name: 'created_by' })
+  createdBy: User;
+
+  @ManyToOne(() => User, (user) => user.id, { nullable: true })
+  @JoinColumn({ name: 'updated_by' })
+  updatedBy: User;
+
+  @Column({
+    precision: 3,
+    type: 'datetime',
+    onUpdate: 'CURRENT_TIMESTAMP',
+    name: 'updated_at',
+    nullable: true,
+  })
+  updatedAt: Date;
+
+  @Column({ default: false })
+  deleted: boolean;
+
+  @Column({
+    precision: 3,
+    type: 'datetime',
+    name: 'deleted_at',
+    nullable: true,
+  })
+  deletedAt: Date;
 }

@@ -47,7 +47,7 @@ export default tseslint.config(
       '@typescript-eslint/no-unsafe-member-access': 'off',
       'no-extra-boolean-cast': 'off',
       '@typescript-eslint/no-floating-promises': 'warn',
-      '@typescript-eslint/no-unsafe-argument': 'warn',
+      '@typescript-eslint/no-unsafe-argument': 'off',
       '@typescript-eslint/no-unused-vars': [
         'error',
         {

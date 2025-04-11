@@ -1,6 +1,6 @@
 import { Column, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
-import { User } from '../user/User.entity';
+import { User } from '../User/User.entity';
 
 export abstract class BaseEntity {
   @PrimaryGeneratedColumn()
