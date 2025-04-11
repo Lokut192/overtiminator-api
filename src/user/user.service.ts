@@ -1,5 +1,7 @@
 import {
   ConflictException,
+  forwardRef,
+  Inject,
   Injectable,
   Logger,
   NotFoundException,
@@ -9,6 +11,7 @@ import { User } from 'src/entities/User/User.entity';
 import { Repository } from 'typeorm';
 
 import { CreateUserDto } from '../dto/User/Create.dto';
+import { UserSettingsService } from './user-settings/user-settings.service';
 
 @Injectable()
 export class UserService {
@@ -17,6 +20,8 @@ export class UserService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @Inject(forwardRef(() => UserSettingsService))
+    private readonly userSettingsService: UserSettingsService,
   ) {}
 
   async findMany() {
@@ -84,7 +89,7 @@ export class UserService {
     return user;
   }
 
-  async createUser(user: CreateUserDto) {
+  async createUser(user: CreateUserDto, meta: Record<string, string> = {}) {
     const existingUser = await this.userRepository
       .createQueryBuilder('user')
       .where('user.email = :email', { email: user.email })
@@ -101,6 +106,11 @@ export class UserService {
 
     this.logger.log(
       `Created user ${createdUser.email} with username ${createdUser.username}.`,
+    );
+
+    void this.userSettingsService.insertUserSettingsOnCreation(
+      createdUser,
+      meta,
     );
 
     return this.findOne(createdUser.id);

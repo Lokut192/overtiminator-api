@@ -13,8 +13,11 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async registerUser(user: CreateUserDto) {
-    return this.userService.createUser(user);
+  async registerUser(
+    user: CreateUserDto,
+    userMeta: Record<string, string> = {},
+  ) {
+    return this.userService.createUser(user, userMeta);
   }
 
   async signUserIn(signInUser: SignInUserDto) {
