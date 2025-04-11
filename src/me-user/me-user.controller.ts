@@ -17,7 +17,7 @@ import { LoggedUserType } from 'src/types/auth/LoggedUser.type';
 import { MeUserService } from './me-user.service';
 
 @UseGuards(AuthGuard)
-@Controller('me')
+@Controller('Me')
 @ApiBearerAuth()
 export class MeUserController {
   constructor(private readonly meUserService: MeUserService) {}

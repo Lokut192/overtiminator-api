@@ -28,7 +28,7 @@ import { GlobalUserSettingsService } from './global-user-settings.service';
 
 @Controller('global-user-settings')
 @ApiExcludeController(process.env.NODE_ENV === 'production')
-@ApiTags('global-user-settings')
+@ApiTags('GlobalUserSettings')
 export class GlobalUserSettingsController {
   constructor(private readonly settingsService: GlobalUserSettingsService) {}
 

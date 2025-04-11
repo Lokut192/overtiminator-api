@@ -32,6 +32,7 @@ async function bootstrap() {
     .setTitle('Overtiminator API')
     .setDescription('The Overtiminator API endpoints')
     .setVersion('1.0')
+    .addBearerAuth()
     .build();
   const documentFactory = () =>
     SwaggerModule.createDocument(app, documentConfig);
