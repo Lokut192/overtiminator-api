@@ -7,20 +7,26 @@ import {
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { plainToInstance } from 'class-transformer';
-import { AuthGuard } from 'src/auth/auth.guard';
 import { LoggedUser } from 'src/decorators/auth/LoggedUser.decorator';
 import { GetMeUserDto } from 'src/dto/User/Me/Get.dto';
-import { LoggedUserType } from 'src/types/auth/LoggedUser.type';
+import { AuthGuard } from 'src/modules/auth/auth.guard';
+import { LoggedUserType } from 'src/modules/auth/auth.types';
 
-import { MeUserService } from './me-user.service';
+import { MeService } from './me.service';
 
 @UseGuards(AuthGuard)
-@Controller('Me')
+@Controller('users/me')
 @ApiBearerAuth()
-export class MeUserController {
-  constructor(private readonly meUserService: MeUserService) {}
+@ApiTags('Me')
+export class MeController {
+  constructor(private readonly meService: MeService) {}
 
   @Get()
   @HttpCode(HttpStatus.OK)
@@ -34,7 +40,7 @@ export class MeUserController {
     type: GetMeUserDto,
   })
   async getMe(@LoggedUser() loggedUser: LoggedUserType) {
-    const user = await this.meUserService.getMe(loggedUser);
+    const user = await this.meService.getMe(loggedUser);
 
     return plainToInstance(GetMeUserDto, user, {
       excludeExtraneousValues: true,

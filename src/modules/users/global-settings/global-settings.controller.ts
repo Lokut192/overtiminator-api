@@ -24,13 +24,13 @@ import { CreateGlobalUserSettingDto } from 'src/dto/User/UserSetting/Global/Crea
 import { GetGlobalUserSettingDto } from 'src/dto/User/UserSetting/Global/Get.dto';
 import { UpdateGlobalUserSettingDto } from 'src/dto/User/UserSetting/Global/Update.dto';
 
-import { GlobalUserSettingsService } from './global-user-settings.service';
+import { GlobalSettingsService } from './global-settings.service';
 
-@Controller('global-user-settings')
+@Controller('users/global-settings')
 @ApiExcludeController(process.env.NODE_ENV === 'production')
-@ApiTags('GlobalUserSettings')
-export class GlobalUserSettingsController {
-  constructor(private readonly settingsService: GlobalUserSettingsService) {}
+@ApiTags('GlobalUsersSettings')
+export class GlobalSettingsController {
+  constructor(private readonly settingsService: GlobalSettingsService) {}
 
   @Post()
   @HttpCode(HttpStatus.CREATED)

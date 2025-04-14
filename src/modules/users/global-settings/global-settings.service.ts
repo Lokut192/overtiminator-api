@@ -13,8 +13,8 @@ import { GlobalUserSetting } from 'src/entities/User/GlobalUserSetting.entity';
 import { Repository } from 'typeorm';
 
 @Injectable()
-export class GlobalUserSettingsService {
-  private readonly logger = new Logger(GlobalUserSettingsService.name);
+export class GlobalSettingsService {
+  private readonly logger = new Logger(GlobalSettingsService.name);
 
   constructor(
     @InjectRepository(GlobalUserSetting)

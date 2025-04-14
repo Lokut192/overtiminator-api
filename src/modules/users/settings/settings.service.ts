@@ -9,21 +9,21 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { GlobalUserSetting } from 'src/entities/User/GlobalUserSetting.entity';
 import { User } from 'src/entities/User/User.entity';
 import { UserSetting } from 'src/entities/User/UserSetting.entity';
-import { GlobalUserSettingsService } from 'src/global-user-settings/global-user-settings.service';
 import { DeepPartial, Repository } from 'typeorm';
 
-import { UserService } from '../user.service';
+import { GlobalSettingsService } from '../global-settings/global-settings.service';
+import { UsersService } from '../users.service';
 
 @Injectable()
-export class UserSettingsService {
-  private readonly logger = new Logger(UserSettingsService.name);
+export class SettingsService {
+  private readonly logger = new Logger(SettingsService.name);
 
   constructor(
     @InjectRepository(UserSetting)
     private readonly userSettingsRepository: Repository<UserSetting>,
-    @Inject(forwardRef(() => UserService))
-    private readonly userService: UserService,
-    private readonly globalSettingsService: GlobalUserSettingsService,
+    @Inject(forwardRef(() => UsersService))
+    private readonly userService: UsersService,
+    private readonly globalSettingsService: GlobalSettingsService,
   ) {}
 
   async findOneCode(userId: number, code: string) {

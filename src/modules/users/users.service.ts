@@ -7,21 +7,21 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { CreateUserDto } from 'src/dto/User/Create.dto';
 import { User } from 'src/entities/User/User.entity';
 import { Repository } from 'typeorm';
 
-import { CreateUserDto } from '../dto/User/Create.dto';
-import { UserSettingsService } from './user-settings/user-settings.service';
+import { SettingsService } from './settings/settings.service';
 
 @Injectable()
-export class UserService {
-  private readonly logger = new Logger(UserService.name);
+export class UsersService {
+  private readonly logger = new Logger(UsersService.name);
 
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-    @Inject(forwardRef(() => UserSettingsService))
-    private readonly userSettingsService: UserSettingsService,
+    @Inject(forwardRef(() => SettingsService))
+    private readonly userSettingsService: SettingsService,
   ) {}
 
   async findMany() {
