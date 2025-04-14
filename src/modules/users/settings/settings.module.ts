@@ -13,6 +13,7 @@ import { SettingsService } from './settings.service';
     GlobalSettingsModule,
     forwardRef(() => UsersModule),
   ],
+  exports: [SettingsService],
   providers: [SettingsService],
   controllers: [SettingsController],
 })

@@ -1,10 +1,12 @@
 import {
+  BadRequestException,
   Controller,
   Get,
   GoneException,
   HttpCode,
   HttpStatus,
   Param,
+  ParseIntPipe,
   UseGuards,
   UsePipes,
   ValidationPipe,
@@ -18,9 +20,10 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { plainToInstance } from 'class-transformer';
-import { AuthGuard } from 'src/auth/auth.guard';
 import { GetOneUserDto } from 'src/dto/User/GetOne.dto';
-import { UserService } from 'src/user/user.service';
+
+import { AuthGuard } from '../auth/auth.guard';
+import { UsersService } from './users.service';
 
 @UseGuards(AuthGuard)
 @Controller('users')
@@ -28,9 +31,9 @@ import { UserService } from 'src/user/user.service';
 @ApiTags('User')
 @ApiExcludeController(process.env.NODE_ENV === 'production')
 export class UsersController {
-  constructor(private userService: UserService) {}
+  constructor(private usersService: UsersService) {}
 
-  @Get(':id')
+  @Get('id/:id')
   @HttpCode(HttpStatus.OK)
   @UsePipes(new ValidationPipe({ whitelist: true }))
   @ApiOperation({ summary: 'Get one user' })
@@ -46,12 +49,19 @@ export class UsersController {
     type: GetOneUserDto,
     isArray: false,
   })
-  async findOne(@Param('id') strId: string) {
+  async findOne(@Param('id', new ParseIntPipe()) strId: string) {
     if (process.env.NODE_ENV !== 'development') {
       throw new GoneException('Endpoint not available in production yet.');
     }
+
+    // Check if the id is a valid number
+    if (Number(strId) <= 0) {
+      throw new BadRequestException('Invalid user id.');
+    }
+
     const id = parseInt(strId, 10);
-    const user = await this.userService.findOne(id);
+
+    const user = await this.usersService.findOne(id);
 
     return plainToInstance(GetOneUserDto, user);
   }
@@ -70,7 +80,7 @@ export class UsersController {
     if (process.env.NODE_ENV !== 'development') {
       throw new GoneException('Endpoint not available in production yet.');
     }
-    const users = await this.userService.findMany();
+    const users = await this.usersService.findMany();
 
     return plainToInstance(GetOneUserDto, users);
   }

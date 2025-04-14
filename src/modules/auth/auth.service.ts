@@ -3,13 +3,13 @@ import { JwtService } from '@nestjs/jwt';
 import { CreateUserDto } from 'src/dto/User/Create.dto';
 import { SignInUserDto } from 'src/dto/User/SignIn.dto';
 import { User } from 'src/entities/User/User.entity';
-import { UserService } from 'src/user/user.service';
+import { UsersService } from 'src/modules/users/users.service';
 import { UtilsService } from 'src/utils/utils.service';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly userService: UserService,
+    private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
   ) {}
 
@@ -17,7 +17,7 @@ export class AuthService {
     user: CreateUserDto,
     userMeta: Record<string, string> = {},
   ) {
-    return this.userService.createUser(user, userMeta);
+    return this.usersService.createUser(user, userMeta);
   }
 
   async signUserIn(signInUser: SignInUserDto) {
@@ -25,8 +25,10 @@ export class AuthService {
     let user: User | null = null;
     try {
       user = await (typeof signInUser.email === 'string'
-        ? this.userService.findOneEmail(signInUser.email, { includePass: true })
-        : this.userService.findOneUsername(signInUser.username!, {
+        ? this.usersService.findOneEmail(signInUser.email, {
+            includePass: true,
+          })
+        : this.usersService.findOneUsername(signInUser.username!, {
             includePass: true,
           }));
     } catch (_userNotFoundException) {
