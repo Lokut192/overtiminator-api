@@ -27,6 +27,7 @@ import { GetOneTimeDto } from 'src/dto/Times/Times/GetOne';
 
 import { AuthGuard } from '../auth/auth.guard';
 import { LoggedUserType } from '../auth/auth.types';
+import { TimeType } from './enums/TimeType.enum';
 import { TimesService } from './times.service';
 
 @Controller('times')
@@ -39,7 +40,7 @@ export class TimesController {
   @Get('list')
   @HttpCode(HttpStatus.OK)
   @UsePipes(new ValidationPipe({ whitelist: true }))
-  @ApiOperation({ summary: 'Create one time for current logged user' })
+  @ApiOperation({ summary: 'Get list of times for current logged user' })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'The created time',
@@ -50,6 +51,23 @@ export class TimesController {
     const times = await this.timesService.findMany(loggedUser.userId);
 
     return plainToInstance(GetOneTimeDto, times);
+  }
+
+  @Get('types')
+  @HttpCode(HttpStatus.OK)
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  @ApiOperation({ summary: 'Get times types' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'All times types',
+    schema: {
+      enum: Object.values(TimeType),
+      type: 'string',
+    },
+    isArray: true,
+  })
+  getTypes() {
+    return Object.values(TimeType);
   }
 
   @Post()
