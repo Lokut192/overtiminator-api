@@ -1,4 +1,4 @@
-import { IntersectionType } from '@nestjs/mapped-types';
+import { IntersectionType } from '@nestjs/swagger';
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose } from 'class-transformer';
 

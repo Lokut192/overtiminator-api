@@ -28,7 +28,7 @@ import { UsersService } from './users.service';
 @UseGuards(AuthGuard)
 @Controller('users')
 @ApiBearerAuth()
-@ApiTags('User')
+@ApiTags('Users')
 @ApiExcludeController(process.env.NODE_ENV === 'production')
 export class UsersController {
   constructor(private usersService: UsersService) {}
