@@ -2,7 +2,7 @@ import { Column, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 import { User } from '../User/User.entity';
 
-export abstract class BaseEntity {
+export class BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 

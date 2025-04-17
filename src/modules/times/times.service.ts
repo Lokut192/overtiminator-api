@@ -20,11 +20,10 @@ export class TimesService {
   async findOne(timeId: number, userId: number) {
     const query = this.timesRepository.createQueryBuilder('time');
 
-    query.where('time.createdBy = :userId', { userId });
+    query.where('time.user = :userId', { userId });
     query.andWhere('time.id = :timeId', { timeId });
 
-    query.leftJoinAndSelect('time.createdBy', 'createdBy');
-    query.leftJoinAndSelect('time.updatedBy', 'updatedBy');
+    query.leftJoinAndSelect('time.user', 'user');
 
     const time = await query.getOne();
 
@@ -38,10 +37,9 @@ export class TimesService {
   async findMany(userId: number) {
     const query = this.timesRepository.createQueryBuilder('time');
 
-    query.where('time.createdBy = :userId', { userId });
+    query.where('time.user = :userId', { userId });
 
-    query.leftJoinAndSelect('time.createdBy', 'createdBy');
-    query.leftJoinAndSelect('time.updatedBy', 'updatedBy');
+    query.leftJoinAndSelect('time.user', 'user');
 
     const times = await query.getMany();
 
@@ -50,7 +48,7 @@ export class TimesService {
 
   async createOne(timeCreationDto: CreateOneTimeDto, userId: number) {
     const time = this.timesRepository.create({
-      createdBy: { id: userId },
+      user: { id: userId },
       date: new Date(timeCreationDto.date),
       duration: timeCreationDto.duration,
       type: TimeType.Overtime,
@@ -60,6 +58,7 @@ export class TimesService {
 
     return this.findOne(time.id, userId);
   }
+
   async deleteOne(timeId: number, userId: number) {
     try {
       const time = await this.findOne(timeId, userId);
