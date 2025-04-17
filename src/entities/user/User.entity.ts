@@ -10,6 +10,8 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
+import { TimeStatistic } from '../Time/Statistics/TimesStatistic.entity';
+import { Time } from '../Time/Time.entity';
 import { UserSetting } from './UserSetting.entity';
 
 @Entity({ name: 'users' })
@@ -73,4 +75,10 @@ export class User {
 
   @OneToMany(() => UserSetting, (userSetting) => userSetting.user)
   userSettings: UserSetting[];
+
+  @OneToMany(() => Time, (time) => time.user)
+  times: Time[];
+
+  @OneToMany(() => TimeStatistic, (stat) => stat.user)
+  timesStatistics: TimeStatistic[];
 }
