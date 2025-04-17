@@ -40,6 +40,7 @@ export default tseslint.config(
     },
     rules: {
       'prettier/prettier': ['error', { singleQuote: true, endOfLine: 'auto' }],
+      '@typescript-eslint/require-await': 'off',
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-unsafe-call': 'off',
       '@typescript-eslint/no-unsafe-assignment': 'off',
