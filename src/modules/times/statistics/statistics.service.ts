@@ -4,11 +4,13 @@ import { DateTime } from 'luxon';
 import { TimeStatistic } from 'src/entities/Time/Statistics/TimesStatistic.entity';
 import { Time } from 'src/entities/Time/Time.entity';
 import { User } from 'src/entities/User/User.entity';
-import { Repository } from 'typeorm';
+import { DeepPartial, Repository } from 'typeorm';
+
+import { TimeType } from '../enums/TimeType.enum';
 
 @Injectable()
 export class StatisticsService {
-  private readonly logger = new Logger(StatisticsService.name);
+  private readonly logger = new Logger('TimesStatisticsService');
 
   constructor(
     @InjectRepository(TimeStatistic)
@@ -19,14 +21,11 @@ export class StatisticsService {
     private readonly usersRepository: Repository<User>,
   ) {}
 
-  async generateForUser(
-    userId: number,
-    period: { start: string; end: string },
-  ) {
-    this.logger.debug(`Starting statistics generation for user ${userId}.`);
-    this.logger.debug(`Getting user ${userId} from database...`);
+  async generateUser(userId: number, utcMonthNumber: number, utcYear: number) {
+    this.logger.log(`Starting statistics generation for user ${userId}.`);
 
-    // Getting user
+    // #region User
+
     const userQuery = this.usersRepository.createQueryBuilder('user');
 
     userQuery.where('user.id = :userId', { userId });
@@ -41,66 +40,154 @@ export class StatisticsService {
       );
       return;
     }
-    this.logger.debug(`User ${userId} found in database.`);
 
-    // Checking user has times
-    this.logger.debug(`Checking user ${userId} has times...`);
-    const userTimesCount = await this.timesRepository.count({
-      where: { user: { id: userId } },
-    });
-    if (userTimesCount === 0) {
-      this.logger.error(
-        `User ${userId} has no times for generating statistics.`,
-      );
-      return;
-    }
-    this.logger.debug(`User ${userId} has ${userTimesCount} times.`);
+    // #endregion User
 
-    /* Getting and extracting user data */
-    // Getting user times
-    const userTimesQuery = this.timesRepository.createQueryBuilder('time');
-    userTimesQuery.where('time.user = :userId', { userId });
-    const userTimes = await userTimesQuery.getMany();
+    // #region Time zones
 
-    // Getting user settings
-    const { userSettings } = user;
+    this.logger.debug(`Getting user time zones...`);
 
-    // Getting user time zone with a fallback
+    const defaultTimeZone = 'UTC';
     const userTimeZone =
-      userSettings.find((s) => s.code === 'TIME_ZONE')?.value ?? 'UTC';
+      user.userSettings.find((s) => s.code === 'TIME_ZONE')?.value ??
+      defaultTimeZone;
 
-    // Determine for which time zone the statistics should be generated
-    const timeZonesForGeneration = [...new Set([userTimeZone, 'UTC'])];
+    const timeZones = new Set([userTimeZone, defaultTimeZone]);
+
     this.logger.debug(
-      `Generating statistics for time zones: ${timeZonesForGeneration.join(',')} for user ${userId}...`,
+      `Found ${timeZones.size} time zones for user ${userId}: ${[...timeZones].join(', ')}.`,
     );
 
-    for (const timeZone of timeZonesForGeneration) {
-      const startDate = DateTime.fromISO(period.start).setZone(timeZone, {
-        keepLocalTime: true,
-      });
-      const endDate = DateTime.fromISO(period.end).setZone(timeZone, {
-        keepLocalTime: true,
-      });
+    // #endregion Time zones
 
-      const timeZoneTimesQuery =
-        this.timesRepository.createQueryBuilder('time');
-      timeZoneTimesQuery.where('time.user = :userId', { userId });
-      timeZoneTimesQuery.andWhere('time.date >= :startDate', {
-        startDate: startDate.toJSDate(),
-      });
-      timeZoneTimesQuery.andWhere('time.date <= :endDate', {
-        endDate: endDate.toJSDate(),
-      });
+    // #region Defining periods
 
-      const timeZoneTimes = await timeZoneTimesQuery.getMany();
+    this.logger.debug(`Defining periods for time zone(s)...`);
 
-      this.logger.debug(
-        `Times for period (${startDate.toISO()} - ${endDate.toISO()}):`,
-      );
-      this.logger.debug(JSON.stringify(timeZoneTimes, null, 2));
+    const periods: { start: DateTime; end: DateTime }[] = [];
+
+    for (const tz of timeZones) {
+      const startDate = DateTime.fromObject({
+        month: utcMonthNumber,
+        year: utcYear,
+      })
+        .startOf('month')
+        .setZone(tz, { keepLocalTime: true });
+      const endDate = startDate.endOf('month');
+
+      periods.push({
+        start: startDate,
+        end: endDate,
+      });
     }
 
-    this.logger.debug(`Statistics successfully generated for user ${userId}.`);
+    this.logger.debug(
+      `Periods defined for user ${userId}: ${JSON.stringify(periods, null, 2)}.`,
+    );
+
+    // #endregion Defining periods
+
+    // #region Existing stats deletion
+
+    for (const { start } of periods) {
+      const currentTimeZone = start.zoneName!;
+      const sanitizedTimeZone = currentTimeZone.trim();
+
+      // Delete current period stats if exists
+      this.logger.debug(`Deleting stats for time zone ${sanitizedTimeZone}...`);
+      this.logger.debug(
+        `Using timeZone param = "${sanitizedTimeZone}" (length: ${sanitizedTimeZone.length})`,
+      );
+
+      const existingStatsDeletionQuery = this.statsRepository
+        .createQueryBuilder()
+        .delete()
+        .where(`user_id = :userId`, {
+          userId,
+        })
+        .andWhere('year = :year', {
+          year: start.year,
+        })
+        .andWhere('month = :month', {
+          month: start.month,
+        })
+        .andWhere('time_zone = :timeZone', {
+          timeZone: sanitizedTimeZone,
+        });
+
+      const existingStatsDeletionResult =
+        await existingStatsDeletionQuery.execute();
+
+      this.logger.debug(
+        `Deleted ${existingStatsDeletionResult.affected} stats for time zone ${sanitizedTimeZone}.`,
+      );
+    }
+
+    // #endregion Existing stats deletion
+
+    // #region Generating statistics
+
+    this.logger.debug(`Generating stats for user ${userId}...`);
+
+    const newStats: DeepPartial<TimeStatistic>[] = [];
+
+    for (const { start, end } of periods) {
+      const currentTimeZone = start.zoneName!;
+      const sanitizedTimeZone = currentTimeZone.trim();
+      const timesQuery = this.timesRepository.createQueryBuilder('times');
+
+      timesQuery.where('times.user = :userId', { userId });
+      timesQuery.andWhere('times.date >= :startDate', {
+        startDate: start.toJSDate(),
+      });
+      timesQuery.andWhere('times.date <= :endDate', {
+        endDate: end.toJSDate(),
+      });
+
+      const timesCount = await timesQuery.getCount();
+      const times = await timesQuery.getMany();
+
+      const totalOvertimeStats = times.reduce(
+        (acc, time) => {
+          switch (time.type) {
+            case TimeType.Overtime:
+            default:
+              return {
+                timesCount: acc.timesCount + 1,
+                totalDuration: acc.totalDuration + time.duration,
+              };
+          }
+        },
+        { timesCount: 0, totalDuration: 0 },
+      );
+
+      const totalDuration = times.reduce((acc, time) => {
+        switch (time.type) {
+          case TimeType.Overtime:
+          default:
+            return acc + time.duration;
+        }
+      }, 0);
+
+      const generatedStats: DeepPartial<TimeStatistic> = {};
+      generatedStats.month = start.month;
+      generatedStats.year = start.year;
+      generatedStats.timeZone = sanitizedTimeZone;
+      generatedStats.overtimeTimesCount = totalOvertimeStats.timesCount;
+      generatedStats.overtimeTotalDuration = totalOvertimeStats.totalDuration;
+      generatedStats.timesCount = timesCount;
+      generatedStats.totalDuration = totalDuration;
+      generatedStats.userId = userId;
+
+      const createdStats = this.statsRepository.create(generatedStats);
+
+      newStats.push(createdStats);
+    }
+
+    this.logger.debug(`Generated stats: ${JSON.stringify(newStats, null, 2)}`);
+
+    await this.statsRepository.save(newStats);
+
+    // #endregion Generating statistics
   }
 }

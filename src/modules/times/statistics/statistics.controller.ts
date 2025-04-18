@@ -3,7 +3,9 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  ParseIntPipe,
   Post,
+  Query,
   UseGuards,
   UsePipes,
   ValidationPipe,
@@ -15,7 +17,6 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { DateTime } from 'luxon';
 import { LoggedUser } from 'src/decorators/auth/LoggedUser.decorator';
 import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { LoggedUserType } from 'src/modules/auth/auth.types';
@@ -53,12 +54,21 @@ export class StatisticsController {
     description: 'Started generating logged user statistics',
   })
   @ApiExcludeEndpoint(process.env.NODE_ENV === 'production')
-  async startGeneratingStats(@LoggedUser() loggedUser: LoggedUserType) {
+  async startGeneratingStats(
+    @LoggedUser() loggedUser: LoggedUserType,
+    @Query('month', new ParseIntPipe()) month: string,
+    @Query('year', new ParseIntPipe()) year: string,
+  ) {
     // Start service in background
-    void this.statsService.generateForUser(loggedUser.userId, {
-      start: DateTime.now().startOf('month').toUTC().toISO(),
-      end: DateTime.now().endOf('month').toUTC().toISO(),
-    });
+    // void this.statsService.generateForUser(loggedUser.userId, {
+    //   start: DateTime.now().startOf('month').toUTC().toISO(),
+    //   end: DateTime.now().endOf('month').toUTC().toISO(),
+    // });
+    void this.statsService.generateUser(
+      loggedUser.userId,
+      Number(month),
+      Number(year),
+    );
 
     return;
   }

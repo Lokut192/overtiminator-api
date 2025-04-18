@@ -3,15 +3,20 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
-  PrimaryGeneratedColumn,
+  PrimaryColumn,
+  Unique,
 } from 'typeorm';
 
 import { User } from '../../User/User.entity';
 
 @Entity({ name: 'times_statistics' })
+@Unique(['month', 'year', 'timeZone', 'userId'])
 export class TimeStatistic {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @Column({ name: 'overtime_times_count' })
+  overtimeTimesCount: number;
+
+  @Column({ name: 'overtime_total_duration' })
+  overtimeTotalDuration: number;
 
   @Column({ name: 'times_count' })
   timesCount: number;
@@ -19,11 +24,17 @@ export class TimeStatistic {
   @Column({ name: 'total_duration' })
   totalDuration: number;
 
-  @Column()
+  @PrimaryColumn()
   month: number;
 
-  @Column()
+  @PrimaryColumn()
   year: number;
+
+  @PrimaryColumn({ name: 'time_zone' })
+  timeZone: string;
+
+  @PrimaryColumn({ name: 'user_id' })
+  userId: number;
 
   @ManyToOne(() => User, (user) => user.id, { nullable: false })
   @JoinColumn({ name: 'user_id' })

@@ -5,9 +5,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './modules/auth/auth.module';
+import { TimesModule } from './modules/times/times.module';
 import { UsersModule } from './modules/users/users.module';
 import { UtilsService } from './utils/utils.service';
-import { TimesModule } from './modules/times/times.module';
 
 @Module({
   imports: [
@@ -23,6 +23,10 @@ import { TimesModule } from './modules/times/times.module';
         entities: ['dist/entities/**/*.entity.js'],
         synchronize: false,
         migrations: ['dist/migrations/*.js'],
+        logging:
+          configService.get<string>('NODE_ENV', 'production') === 'development'
+            ? ['query']
+            : false,
         // logging: false,
       }),
     }),
