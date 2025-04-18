@@ -4,11 +4,14 @@ import {
   Controller,
   Delete,
   Get,
+  Headers,
   HttpCode,
   HttpStatus,
+  Logger,
   Param,
   ParseIntPipe,
   Post,
+  Query,
   UseGuards,
   UsePipes,
   ValidationPipe,
@@ -21,6 +24,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { plainToInstance } from 'class-transformer';
+import { DateTime } from 'luxon';
 import { LoggedUser } from 'src/decorators/auth/LoggedUser.decorator';
 import { CreateOneTimeDto } from 'src/dto/Times/Times/CreateOne.dto';
 import { GetOneTimeDto } from 'src/dto/Times/Times/GetOne';
@@ -35,6 +39,8 @@ import { TimesService } from './times.service';
 @ApiBearerAuth()
 @ApiTags('Times')
 export class TimesController {
+  private readonly logger = new Logger(TimesController.name);
+
   constructor(private readonly timesService: TimesService) {}
 
   @Get('list')
@@ -47,7 +53,33 @@ export class TimesController {
     type: GetOneTimeDto,
     isArray: false,
   })
-  async findMany(@LoggedUser() loggedUser: LoggedUserType) {
+  async findMany(
+    @LoggedUser() loggedUser: LoggedUserType,
+    @Headers('x-timezone') timezone?: string,
+    @Query('from') from?: string,
+  ) {
+    this.logger.log(
+      JSON.stringify({
+        from,
+        timezone,
+      }),
+    );
+    if (typeof from === 'string' && !DateTime.fromISO(from).isValid) {
+      throw new BadRequestException('Invalid from date');
+    }
+
+    const isoDateFrom = /^(\d{4}-\d{2}-\d{2}).*$/.exec(from ?? '')?.[1];
+
+    if (!!isoDateFrom) {
+      this.logger.debug(
+        DateTime.fromFormat(isoDateFrom, 'yyyy-MM-dd')
+          .setZone('Europe/Paris', { keepLocalTime: true })
+          .setZone('UTC', { keepLocalTime: false })
+          .toJSDate()
+          .toISOString(),
+      );
+    }
+
     const times = await this.timesService.findMany(loggedUser.userId);
 
     return plainToInstance(GetOneTimeDto, times);
